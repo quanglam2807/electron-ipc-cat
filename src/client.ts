@@ -14,7 +14,7 @@ export function createProxy<T>(descriptor: ProxyDescriptor, ObservableCtor: Obse
     const propertyType = descriptor.properties[propertyKey];
 
     // Provide feedback if the Observable constructor has not been passed in
-    if ((propertyType === ProxyPropertyType.Value$ || propertyType === ProxyPropertyType.Function$) && typeof ObservableCtor !== 'function') {
+    if (propertyType === ProxyPropertyType.Value$ && typeof ObservableCtor !== 'function') {
       throw new Error(
         'You must provide an implementation of the Observable constructor if you want to proxy Observables. Please see the docs at https://github.com/frankwallis/electron-ipc-proxy.',
       );
@@ -28,19 +28,6 @@ export function createProxy<T>(descriptor: ProxyDescriptor, ObservableCtor: Obse
           const originalObservable = getProperty(propertyType, propertyKey, descriptor.channel, ObservableCtor, transport);
           if (isObservable(originalObservable)) {
             originalObservable.subscribe((value: any) => next(value));
-          }
-        }),
-      });
-    } else if (propertyType === ProxyPropertyType.Function$) {
-      Object.defineProperty(result, getSubscriptionKey(propertyKey), {
-        enumerable: true,
-        get: memoize(() => (...arguments_: any[]) => (next: (value?: any) => void) => {
-          const originalObservableFunction = getProperty(propertyType, propertyKey, descriptor.channel, ObservableCtor, transport);
-          if (typeof originalObservableFunction === 'function') {
-            const originalObservable = originalObservableFunction(...arguments_);
-            if (isObservable(originalObservable)) {
-              originalObservable.subscribe((value: any) => next(value));
-            }
           }
         }),
       });
@@ -69,9 +56,6 @@ function getProperty(
       return makeObservable({ type: RequestType.Subscribe, propKey: propertyKey }, channel, ObservableCtor, transport);
     case ProxyPropertyType.Function:
       return async (...arguments_: unknown[]) => await makeRequest({ type: RequestType.Apply, propKey: propertyKey, args: arguments_ }, channel, transport);
-    case ProxyPropertyType.Function$:
-      return (...arguments_: any[]) =>
-        makeObservable({ type: RequestType.ApplySubscribe, propKey: propertyKey, args: arguments_ }, channel, ObservableCtor, transport);
     default:
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       throw new IpcProxyError(`Unrecognised ProxyPropertyType [${propertyType}]`);

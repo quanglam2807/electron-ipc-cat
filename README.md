@@ -57,7 +57,6 @@ export const WorkspaceServiceIPCDescriptor = {
     workspaces$: ProxyPropertyType.Value$,
     getWorkspacesAsList: ProxyPropertyType.Function,
     get: ProxyPropertyType.Function,
-    get$: ProxyPropertyType.Function$,
   },
 };
 ```
@@ -166,7 +165,7 @@ export function useWorkspaceObservable(id: string): IWorkspace | undefined {
 
 All `Values` and `Functions` will return promises on the renderer side, no matter how they have been defined on the source object. This is because communication happens asynchronously. For this reason it is recommended that you make them promises on the source object as well, so the interface is the same on both sides.
 
-Use `Value$` and `Function$` when you want to expose or return an Observable stream across IPC. Due to [contextIsolation's limit](https://github.com/electron/electron/issues/28176) we can't directly proxy observables, so we have to place observables into `window.observables.xxx`.
+Use `Value$` when you want to expose or return an Observable stream across IPC. Due to [contextIsolation's limit](https://github.com/electron/electron/issues/28176) we can't directly proxy observables, so we have to place observables into `window.observables.xxx`.
 
 Only plain objects can be passed between the 2 sides of the proxy, as the data is serialized to JSON, so no functions or prototypes will make it across to the other side.
 

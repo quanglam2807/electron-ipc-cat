@@ -43,21 +43,6 @@ export function ipcProxyFixContextIsolation<T extends Record<string, any>>(name:
         ((window as unknown as IWindow).observables as any)[name][key] = subscribedObservable;
       }
     }
-    // create (id: string) => Observable
-    if (ProxyPropertyType.Function$ === descriptor.properties[key] && !(key in service) && getSubscriptionKey(key) in service) {
-      const subscribingObservable = (...arguments_: any[]): T[keyof T] =>
-        new Observable((observer) => {
-          service[getSubscriptionKey(key)](...arguments_)((value: any) => observer.next(value));
-        }) as T[keyof T];
-      // store newly created Observable to `(window as IWindow).observables.xxx.yyy`
-      if ((window as unknown as IWindow).observables[name as string] === undefined) {
-        ((window as unknown as IWindow).observables as any)[name] = {
-          [key]: subscribingObservable,
-        };
-      } else {
-        ((window as unknown as IWindow).observables as any)[name][key] = subscribingObservable;
-      }
-    }
   }
 }
 
