@@ -57,4 +57,3 @@ export function fixContextIsolation(): void {
     ipcProxyFixContextIsolation(serviceName, services[serviceName as string], descriptors[serviceName as number]);
   }
 }
-fixContextIsolation();
